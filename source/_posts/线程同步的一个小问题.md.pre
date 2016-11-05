@@ -1,0 +1,92 @@
+title: "线程同步的一个小问题"
+date: 2015-04-22 14:15:51
+category: 编程
+tags: [多线程, 编程]
+---
+
+最近在看一些多线程方面的东西，多线程带来最大的好处就是可以共享资源，也带来了资源的竞争访问，因此线程之间的同步问题多线程编程的难点。偶然写了一个小例子，但是得到的结果却着实令我疑惑，记录一下。
+<!--more-->
+
+程序目的是为了演示一下不进行同步带来的问题，其实就是3个线程同时去访问一个全局变量，对全局变量进行加1操作。理论上没有对线程同步的话，最终的结果应该不是300，每次运行结果应该是不一样的。但是编译运行后发现，结果恒定是300！附上代码：
+```c
+#include<stdio.h>
+#include<stdlib.h>
+#include<pthread.h>
+
+int global=0;
+void increase(void);
+
+int main()
+{
+	pthread_t thread[3];
+	for(int i=0;i<3;i++)
+	{
+		if(pthread_create(&thread[i],NULL,(void*)increase,NULL)!=0)
+			printf("thread1 has not been created successfully\n");
+	}
+	for(int i=0;i<3;i++)
+		pthread_join(thread[i],NULL);
+	printf("%d\n",global);
+	return 0;
+}
+
+void increase(void)
+{
+	int tmp,i;
+	for(i=0;i<100;i++)//问题就出在这里
+	{
+		tmp=global;
+		tmp=tmp+1;
+		global=tmp;
+	}
+}
+```
+在CentOS下编译:`gcc test.c -o test -lrt`后执行，结果恒定为300，这是为何？
+
+# 疑惑解决
+基于谢导的点拨发现问题出在线程函数的循环里面，之前设置的100次，这个次数太小，当pthread_create一执行完，线程函数就执行完了，这样就根本还没来得及去竞争访问全局变量global就歇菜了，大家谁都没抢谁的。所以结果一直是300。我改成10000，这样执行，结果就如预期了。
+```
+[root@node216 practice]# ./tst 
+30000
+[root@node216 practice]# ./tst 
+30000
+[root@node216 practice]# ./tst 
+22649
+[root@node216 practice]# ./tst 
+23313
+[root@node216 practice]# ./tst 
+30000
+```
+
+# 解决同步问题
+这里直接对临界区加锁即可。声明全局锁：
+```c
+pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;//lock initialization
+```
+修改线程函数：
+```c
+void increase(void)
+{
+	int tmp,i;
+	for(i=0;i<10000;i++)
+	{
+		if(pthread_mutex_lock(&mutex)!=0)//lock
+		{
+			perror("lock error!\n");
+			exit(EXIT_FAILURE);
+		}
+		tmp=global;
+		tmp=tmp+1;
+		global=tmp;
+		if(pthread_mutex_unlock(&mutex)!=0)//unlock
+		{
+			perror("unlock error!\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+```
+
+# 小结
+很多时候一个小问题可能会让自己纠结很久，其实还是知识面不够广，对细节把握不够。现在看来是一个很low的问题，但还是记录下来，算是学习吧！
+

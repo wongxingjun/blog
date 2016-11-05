@@ -1,0 +1,30 @@
+title: Linux内核-Cgroups原理与实现
+date: 2016-04-14 21:21:44
+categories: Linux
+tags: [Linux,内核]
+---
+
+Docker实现的技术原理，自然就涉及到namespace和Cgroups了，namespace实现空间隔离，Cgroups实现资源隔离，二者相辅成为LXC的基石，深刻影响了后来的Docker，这篇文章就简要介绍一下Cgroups相关基础。
+<!--more-->
+
+# Cgroups的由来
+Cgroups，全称Control Groups，最早由Google的工程师提出来，后在2.6.24以后并入内核，当时由于Google内部需要
+
+
+
+
+
+
+# 模块一
+
+
+
+
+
+# 模块二
+
+
+
+
+
+# 实验

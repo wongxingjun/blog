@@ -1,0 +1,10 @@
+title: Spark和Hadoop的task执行模型
+date: 2016-05-09 21:55:55
+categories: Spark
+tags: [Spark, Hadoop]
+---
+
+Spark自诞生以来就吸引了众多注意力，也有很多人喜欢将其与最火的MapReduce框架Hadoop进行对比，从性能到架构、设计细节等，从某些方面来看Spark毕竟出现得晚于Hadoop，对Hadoop进行了取长补短，其设计优于Hadoop，比如采用常驻内存等方式减少磁盘IO等。本文就Spark和Hadoop的task执行模型进行对比。
+
+# 概述
+从宏观上看，Spark和Hadoop都实现了多任务并发执行，二者都采用的异步并发执行模式，Hadoop有自己的一套actor异步并发，而Spark则利用了强大的akka
