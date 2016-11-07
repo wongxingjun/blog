@@ -69,7 +69,7 @@ fancybox: true
 excerpt_link: 阅读全文
 
 # Static files
-vendors: vendors
+vendors: lib
 css: css
 js: js
 images: images
